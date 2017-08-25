@@ -37,7 +37,7 @@ import org.w3c.dom.Element;
 
 public class DataflowAnalyser {
 	
-	final static String CLASS_FILE_DIR = "../dataflow-graal-example/bin";
+	final static String CLASS_FILE_DIR = "./bin";
 	final static String CLASS_NAME = "org/prettycat/examples/test/TestClass";
 	final static String EXTRACTION_ANNOTATION = "Lorg/senecade/asm/Extract;";
 	final static boolean EXTRACT_ALL = false;
@@ -45,7 +45,6 @@ public class DataflowAnalyser {
 	public static void main(String[] args) throws IOException {
 		ClassPath cp = new ClassPath();
 		cp.addPath(Paths.get(CLASS_FILE_DIR));
-		cp.addJarFile(Paths.get("./libs/asm-5.2.jar").toFile());
 		
 		/*Path classFilePath = Paths.get(CLASS_FILE_DIR + "/" + CLASS_NAME + ".class");
 		byte[] sourceClass;
@@ -57,7 +56,7 @@ public class DataflowAnalyser {
 			return;
 		}*/
 		
-		byte[] sourceClass = cp.readClass("org.objectweb.asm.ClassReader");
+		byte[] sourceClass = cp.readClass("org.prettycat.examples.test.TestClass");
 
 		ClassNode sourceClassNode = new ClassNode(Opcodes.ASM5);
 		ClassReader sourceClassReader = new ClassReader(sourceClass);

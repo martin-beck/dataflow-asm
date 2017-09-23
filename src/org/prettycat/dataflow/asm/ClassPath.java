@@ -24,17 +24,17 @@ public class ClassPath {
 		
 		public InputStream openClass(String fqcn) {
 			String[] parts = fqcn.split("\\.");
-			System.err.println("looking for "+fqcn+" in "+root.toString());
+			// System.err.println("looking for "+fqcn+" in "+root.toString());
 			Path path = this.root;
 			for (int i = 0; i < parts.length-1; i++) {
 				path = path.resolve(parts[i]);
 			}
 			path = path.resolve(parts[parts.length-1] + ".class");
-			System.err.println("final path: "+path);
+			// System.err.println("final path: "+path);
 			try {
 				return new FileInputStream(path.toFile());
 			} catch (FileNotFoundException exc) {
-				System.err.println("failed to open: "+path);
+				// System.err.println("failed to open: "+path);
 				return null;
 			}
 		}
@@ -50,11 +50,11 @@ public class ClassPath {
 		public InputStream openClass(String fqcn) {
 			String[] parts = fqcn.split("\\.");
 			String path = String.join("/", parts) + ".class"; 
-			System.err.println("looking for "+path+" in jarfile "+file);
+			// System.err.println("looking for "+path+" in jarfile "+file);
 			try {
 				return this.file.getInputStream(this.file.getEntry(path));
 			} catch (IOException e) {
-				System.err.println("failed to open "+path+" from jarfile");
+				// System.err.println("failed to open "+path+" from jarfile");
 				return null;
 			}
 		}
@@ -86,6 +86,9 @@ public class ClassPath {
 	
 	public byte[] readClass(String fqcn) {
 		InputStream inputStream = openClass(fqcn);
+		if (inputStream == null) {
+			return null;
+		}
 		ByteArrayOutputStream result = new ByteArrayOutputStream();
 		byte[] buffer = new byte[1024];
 		int length;

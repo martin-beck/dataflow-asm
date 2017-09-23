@@ -32,13 +32,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>asm-parent</artifactId>
     <groupId>org.ow2.asm</groupId>
+    <artifactId>asm-parent</artifactId>
     <version>5.2</version>
   </parent>
 
-  <name>ASM Core</name>
-  <artifactId>asm</artifactId>
+  <name>ASM Debug All</name>
+  <groupId>org.ow2.asm</groupId>
+  <artifactId>asm-debug-all</artifactId>
   <packaging>jar</packaging>
   
 </project>

@@ -143,7 +143,11 @@ public class DataflowAnalyser {
 	private static void addToClassPath(String arg) throws IOException {
 		String[] items = arg.split(":");
 		for (String path: items) {
-			cp.addPath(Paths.get(path));
+			if (path.endsWith(".jar")) {
+				cp.addJarFile(Paths.get(path).toFile());
+			} else {
+				cp.addPath(Paths.get(path));
+			}
 		}
 	}
 	

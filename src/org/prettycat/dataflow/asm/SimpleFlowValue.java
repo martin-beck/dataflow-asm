@@ -1,19 +1,27 @@
 package org.prettycat.dataflow.asm;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-
-import javax.print.attribute.standard.MediaSize.Other;
+import java.util.HashSet;
 
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.analysis.Value;
 
 public class SimpleFlowValue implements Value {
+	@Override
+	public int hashCode() {
+		if (origin != null) {
+			return origin.hashCode();
+		} else if (isMerge) {
+			return inputs.hashCode();
+		} else {
+			return id;
+		}
+	}
+
 	public final Type type;
 	public final AbstractInsnNode origin;
-	public final ArrayList<SimpleFlowValue> inputs;
+	public final HashSet<SimpleFlowValue> inputs;
 	public final boolean isMerge;
 	public final int id;
 	
@@ -23,7 +31,7 @@ public class SimpleFlowValue implements Value {
     	this.id = uniqueId++;
         this.type = type;
         this.origin = origin;
-        this.inputs = new ArrayList<SimpleFlowValue>();
+        this.inputs = new HashSet<SimpleFlowValue>();
         if (inputs != null) { 
         	this.inputs.addAll(inputs);
         }
@@ -49,9 +57,18 @@ public class SimpleFlowValue implements Value {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof SimpleFlowValue) {
-			return this.id == ((SimpleFlowValue)obj).id;
+			SimpleFlowValue other = (SimpleFlowValue)obj;
+			if (origin != null) {
+				return origin == other.origin;
+			}
+			if (isMerge) {
+				if (!other.isMerge) {
+					return false;
+				}
+				return inputs.equals(other.inputs);
+			}
+			return id == other.id;
 		}
-		// TODO Auto-generated method stub
 		return super.equals(obj);
 	}
     
@@ -93,7 +110,20 @@ public class SimpleFlowValue implements Value {
     	if (new_type == null || other.type == null || !new_type.equals(other.type)) {
     		new_type = null;
     	}
+
+    	HashSet<SimpleFlowValue> new_inputs = new HashSet<>();
+    	if (isMerge) {
+    		new_inputs.addAll(inputs);
+    	} else {
+    		new_inputs.add(this);
+    	}
     	
-    	return new SimpleFlowValue(new_type, null, Arrays.asList(new SimpleFlowValue[]{this, other}), true);
+    	if (other.isMerge) {
+    		new_inputs.addAll(other.inputs);
+    	} else {
+    		new_inputs.add(other);
+    	}
+    	
+    	return new SimpleFlowValue(new_type, null, new_inputs, true);
     }
 }

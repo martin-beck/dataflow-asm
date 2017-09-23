@@ -263,13 +263,13 @@ public class MethodAnalysis {
 		return arguments;
 	}
 	
-	private void gatherNestedInputs(StringBuilder into, SimpleFlowValue rootInput) {
+	/* private void gatherNestedInputs(StringBuilder into, SimpleFlowValue rootInput) {
 		if (rootInput.origin != null) {
 			into.append(rootInput.origin);
 			return;
 		}
 		if (rootInput.inputs.size() == 1) {
-			gatherNestedInputs(into, rootInput.inputs.get(0));
+			gatherNestedInputs(into, rootInput.inputs.);
 			return;
 		}
 		into.append("[");
@@ -282,7 +282,7 @@ public class MethodAnalysis {
 			gatherNestedInputs(into, input);
 		}
 		into.append("]");
-	}
+	} */
 	
 	public void dump() {
 		int i = 0;
@@ -305,8 +305,7 @@ public class MethodAnalysis {
 							b.append(argIndex);
 							b.append(")");
 						} else {
-							b.append(" ");	
-							gatherNestedInputs(b, input);
+							b.append(" <invalid>");
 						}
 					}
 					System.out.println(b);

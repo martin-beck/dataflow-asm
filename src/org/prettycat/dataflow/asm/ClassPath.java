@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 public class ClassPath {
 	private interface ClassSource {
@@ -51,8 +52,12 @@ public class ClassPath {
 			String[] parts = fqcn.split("\\.");
 			String path = String.join("/", parts) + ".class"; 
 			// System.err.println("looking for "+path+" in jarfile "+file);
+			ZipEntry entry = this.file.getEntry(path);
+			if (entry == null) {
+				return null;
+			}
 			try {
-				return this.file.getInputStream(this.file.getEntry(path));
+				return this.file.getInputStream(entry);
 			} catch (IOException e) {
 				// System.err.println("failed to open "+path+" from jarfile");
 				return null;

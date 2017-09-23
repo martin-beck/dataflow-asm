@@ -3,6 +3,7 @@ package org.prettycat.dataflow.asm;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -20,7 +21,7 @@ import org.w3c.dom.Element;
 public class MethodAnalysis {
 	private final String owner;
 	private final MethodNode method;
-	private final Analyzer analyzer;
+	private final Analyzer<SimpleFlowValue> analyzer;
 	private final SimpleFlowInterpreter interpreter;
 	
 	private final HashMap<Integer, ArrayList<Edge> > edges;
@@ -58,7 +59,7 @@ public class MethodAnalysis {
 		this.edges = new HashMap<Integer, ArrayList<Edge> >();
 		this.exceptionTargets = new HashSet<Integer>();
 		this.referencedMethods = new HashSet<String>();
-		this.analyzer = new Analyzer(interpreter) {
+		this.analyzer = new Analyzer<SimpleFlowValue>(interpreter) {
 			@Override
 			protected boolean newControlFlowExceptionEdge(int insn, int successor) {
 				if (!edges.containsKey(insn)) {
@@ -94,7 +95,7 @@ public class MethodAnalysis {
 	private void runAnalysis() throws AnalyzerException {
 		analyzer.analyze(owner, method);
 		
-		Frame initialFrame = analyzer.getFrames()[0];
+		Frame<SimpleFlowValue> initialFrame = analyzer.getFrames()[0];
 		int nargs = Type.getArgumentTypes(method.desc).length;
 		if ((method.access & Opcodes.ACC_STATIC) == 0) {
 			nargs += 1;
@@ -214,7 +215,7 @@ public class MethodAnalysis {
 		
 		int i = 0;
 		int lineno = 0;
-		for (Frame frame: analyzer.getFrames()) {
+		for (Frame<SimpleFlowValue> frame: analyzer.getFrames()) {
 			final AbstractInsnNode instruction = method.instructions.get(i);
 			System.out.println(instruction);
 			result.appendChild(writeInstructionXML(doc, i, instruction, lineNumbers.get(i)));
@@ -246,7 +247,7 @@ public class MethodAnalysis {
 		return methodElement;
 	}
 	
-	public Analyzer getAnalyzer() {
+	public Analyzer<SimpleFlowValue> getAnalyzer() {
 		return analyzer;
 	}
 	
@@ -285,7 +286,7 @@ public class MethodAnalysis {
 	
 	public void dump() {
 		int i = 0;
-		for (Frame frame: analyzer.getFrames()) {
+		for (Frame<SimpleFlowValue> frame: analyzer.getFrames()) {
 			final AbstractInsnNode instruction = method.instructions.get(i);
 			System.out.println("instruction "+instruction+"; frame: "+i+" "+frame);
 			SimpleFlowValue value = interpreter.getValue(instruction);
@@ -319,5 +320,9 @@ public class MethodAnalysis {
 			}	
 			i = i + 1;
 		}
+	}
+	
+	public Set<String> getReferencedMethods() {
+		return referencedMethods;
 	}
 }

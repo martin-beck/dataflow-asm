@@ -91,6 +91,15 @@ public class XMLProtocol {
 		Element result = doc.createElementNS(NAMESPACE, "input");
 		return result;
 	}
+
+	public static Element createCallTargetElement(
+			Document doc,
+			String fqmn)
+	{
+		Element result = doc.createElementNS(NAMESPACE, "call-target");
+		result.setAttribute("target", fqmn);
+		return result;
+	}
 	
 	public static Element createValueOfElement(Document doc, String uid) {
 		Element result = doc.createElementNS(NAMESPACE, "value-of");
@@ -105,6 +114,15 @@ public class XMLProtocol {
 	
 	public static Element createMergeElement(Document doc) {
 		Element result = doc.createElementNS(NAMESPACE, "merge");
+		return result;
+	}
+	
+	public static Element createExceptionElement(
+			Document doc,
+			String fqtn) 
+	{
+		Element result = doc.createElementNS(NAMESPACE, "exception");
+		result.setAttribute("type", fqtn);
 		return result;
 	}
 }

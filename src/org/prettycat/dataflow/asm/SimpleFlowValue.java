@@ -2,6 +2,7 @@ package org.prettycat.dataflow.asm;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -21,7 +22,7 @@ public class SimpleFlowValue implements Value {
 
 	public final Type type;
 	public final AbstractInsnNode origin;
-	public final HashSet<SimpleFlowValue> inputs;
+	public final LinkedHashSet<SimpleFlowValue> inputs;
 	public final boolean isMerge;
 	public final int id;
 	
@@ -31,7 +32,7 @@ public class SimpleFlowValue implements Value {
     	this.id = uniqueId++;
         this.type = type;
         this.origin = origin;
-        this.inputs = new HashSet<SimpleFlowValue>();
+        this.inputs = new LinkedHashSet<SimpleFlowValue>();
         if (inputs != null) { 
         	this.inputs.addAll(inputs);
         }

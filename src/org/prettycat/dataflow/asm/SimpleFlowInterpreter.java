@@ -319,9 +319,9 @@ public class SimpleFlowInterpreter extends Interpreter<SimpleFlowValue> implemen
         if (opcode == MULTIANEWARRAY) {
             return newValue(Type.getType(((MultiANewArrayInsnNode) insn).desc), insn, (List<SimpleFlowValue>)values);
         } else if (opcode == INVOKEDYNAMIC) {
-            return newValue(Type
-                    .getReturnType(((InvokeDynamicInsnNode) insn).desc), insn, (List<SimpleFlowValue>)values);
+            return newValue(Type.getReturnType(((InvokeDynamicInsnNode) insn).desc), insn, (List<SimpleFlowValue>)values);
         } else {
+        	System.out.println(((MethodInsnNode)insn).name + " " + values);
             return newValue(Type.getReturnType(((MethodInsnNode) insn).desc), insn, (List<SimpleFlowValue>)values);
         }
     }

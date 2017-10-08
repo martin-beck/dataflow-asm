@@ -24,7 +24,7 @@ public class MethodAnalysis {
 	private final Analyzer<SimpleFlowValue> analyzer;
 	private final SimpleFlowInterpreter interpreter;
 	
-	private final HashMap<Integer, ArrayList<Edge> > edges;
+	private final HashMap<Integer, HashSet<Edge> > edges;
 	private final HashSet<Integer> exceptionTargets;
 	private final ArrayList<SimpleFlowValue> arguments;
 	
@@ -33,8 +33,8 @@ public class MethodAnalysis {
 
 	public static class Edge {
 
-		int target_node;
-		boolean is_exception;
+		final int target_node;
+		final boolean is_exception;
 		
 		Edge(int target_node, boolean is_exception) {
 			this.target_node = target_node;
@@ -50,20 +50,25 @@ public class MethodAnalysis {
 			// TODO Auto-generated method stub
 			return super.equals(obj);
 		}
+
+		@Override
+		public int hashCode() {
+			return Integer.hashCode(target_node) ^ Boolean.hashCode(is_exception);
+		}
 	}
 	
 	public MethodAnalysis(String owner, MethodNode method) throws AnalyzerException {
 		this.owner = owner;
 		this.method = method;
 		this.interpreter = new SimpleFlowInterpreter();
-		this.edges = new HashMap<Integer, ArrayList<Edge> >();
+		this.edges = new HashMap<Integer, HashSet<Edge> >();
 		this.exceptionTargets = new HashSet<Integer>();
 		this.referencedMethods = new HashSet<String>();
 		this.analyzer = new Analyzer<SimpleFlowValue>(interpreter) {
 			@Override
 			protected boolean newControlFlowExceptionEdge(int insn, int successor) {
 				if (!edges.containsKey(insn)) {
-					ArrayList<Edge> exits = new ArrayList<>();
+					HashSet<Edge> exits = new HashSet<>();
 					edges.put(insn, exits);
 				}  
 				edges.get(insn).add(new Edge(successor, true));
@@ -81,7 +86,7 @@ public class MethodAnalysis {
 				// System.out.println(insn + " -> " + successor);
 				
 				if (!edges.containsKey(insn)) {
-					ArrayList<Edge> exits = new ArrayList<>();
+					HashSet<Edge> exits = new HashSet<>();
 					edges.put(insn, exits);
 				}
 				edges.get(insn).add(new Edge(successor, false));
@@ -140,7 +145,11 @@ public class MethodAnalysis {
 	}
 	
 	public String getFullyQualifiedMethodName() {
-		return "java:"+owner.replace('/', '.')+"."+method.name+"["+method.desc+"]";
+		return getFullyQualifiedMethodName(owner, method.name, method.desc);
+	}
+	
+	public static String getFullyQualifiedMethodName(String owner, String name, String desc) {
+		return "java:"+owner.replace('/', '.')+"."+name+"["+desc+"]";
 	}
 	
 	public String getFullyQualifiedInstructionName(int index) {
@@ -168,7 +177,12 @@ public class MethodAnalysis {
 					merge.appendChild(writeInputXML(doc, subInput));
 				}
 				return merge;
+			} else if (!input.isMerge) {
+				// TODO: check that this is actually an exception ...
+				return XMLProtocol.createExceptionElement(doc, input.type.getDescriptor());
 			} else {
+				// I don’t think this is reachable ...
+				System.err.println("unknown input value (origin="+input.origin+", isMerge="+input.isMerge+"): "+input);
 				return XMLProtocol.createUnknownElement(doc);
 			}
 		}
@@ -197,7 +211,14 @@ public class MethodAnalysis {
 		if (value != null && value.inputs.size() > 0) {
 			result.appendChild(writeInputsXML(doc, value));
 		}
-		ArrayList<Edge> exits = edges.get(index);
+		if (instruction instanceof MethodInsnNode) {
+			MethodInsnNode callNode = (MethodInsnNode)instruction;
+			result.appendChild(XMLProtocol.createCallTargetElement(
+					doc, 
+					getFullyQualifiedMethodName(callNode.owner, callNode.name, callNode.desc)
+			));
+		}
+		HashSet<Edge> exits = edges.get(index);
 		if (exits != null) {
 			Element exitsNode = XMLProtocol.createExitsElement(doc);
 			result.appendChild(exitsNode);
@@ -217,7 +238,10 @@ public class MethodAnalysis {
 		int lineno = 0;
 		for (Frame<SimpleFlowValue> frame: analyzer.getFrames()) {
 			final AbstractInsnNode instruction = method.instructions.get(i);
-			System.out.println(instruction);
+			/* if (instruction.getOpcode() == -1) {
+				i += 1;
+				continue;
+			} */
 			result.appendChild(writeInstructionXML(doc, i, instruction, lineNumbers.get(i)));
 			
 			i += 1;
@@ -255,7 +279,7 @@ public class MethodAnalysis {
 		return interpreter;
 	}
 	
-	public HashMap<Integer, ArrayList<Edge> > getEdges() {
+	public HashMap<Integer, HashSet<Edge> > getEdges() {
 		return edges;
 	}
 	
@@ -311,7 +335,7 @@ public class MethodAnalysis {
 					System.out.println(b);
 				}
 			}
-			ArrayList<MethodAnalysis.Edge> exits = edges.get(new Integer(i));
+			HashSet<MethodAnalysis.Edge> exits = edges.get(new Integer(i));
 			if (exits != null) {
 				for (MethodAnalysis.Edge edge: exits) {
 					System.out.println("  -> "+edge.target_node+" "+edge.is_exception);

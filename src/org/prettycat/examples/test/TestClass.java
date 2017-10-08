@@ -9,17 +9,18 @@ public class TestClass {
 	public void call(int i) {
 		i = i + k;
 		if (i > 0) { 
-			method1(i);
+			i = method1(i);
 		} else {
-			method2(i);
+			i = AnotherTestClass.method2(i);
 		}
+		System.out.println(i);
 	}
 	
 	public int exceptionTest(int i) {
 		try {
 			method1(i);
 		} catch (NullPointerException e) {
-			method2(i);
+			AnotherTestClass.method2(i);
 		}
 		return i+1;
 	}
@@ -31,7 +32,7 @@ public class TestClass {
 			j = 23;
 			break;
 		case 0:
-			j = 1;
+			j = simpleReturn(k);
 			break;
 		case 1:
 			j = 12;
@@ -42,15 +43,20 @@ public class TestClass {
 		default:
 			j = 2;
 		}
-		method1(j);
-	}
-
-	public void method1(int i) {
-		method2(-i % k);
+		call(j);
 	}
 	
-	public void method2(int i) {
-		i -= k;
-		System.out.println(i);
+	public void loop(int k) {
+		for (int j = 1; j < k; j++) {
+			method1(j);
+		}
+	}
+	
+	public int simpleReturn(int i) {
+		return i + 1;
+	}
+
+	public int method1(int i) {
+		return AnotherTestClass.method2(-i % k);
 	}
 }

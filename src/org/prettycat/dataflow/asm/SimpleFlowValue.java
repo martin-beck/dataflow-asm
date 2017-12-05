@@ -44,7 +44,7 @@ public class SimpleFlowValue implements Value {
     }
 
     public int getSize() {
-        return type == Type.LONG_TYPE || type == Type.DOUBLE_TYPE ? 2 : 1;
+        return type == Type.LONG_TYPE || type == Type.DOUBLE_TYPE ? 1 : 1;
     }
 
     public boolean isReference() {
@@ -68,6 +68,9 @@ public class SimpleFlowValue implements Value {
 				}
 				return inputs.equals(other.inputs);
 			}
+			/* if (type == null && other.type == null) {
+				return true;
+			} */
 			return id == other.id;
 		}
 		return super.equals(obj);
@@ -105,6 +108,8 @@ public class SimpleFlowValue implements Value {
     	if (other.equals(this)) {
     		return this;
     	}
+
+    	// System.err.println("merging "+this+" with "+other);
     	
     	// try to determine a reasonable type
     	Type new_type = this.type;

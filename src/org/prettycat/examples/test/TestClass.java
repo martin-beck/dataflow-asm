@@ -41,7 +41,7 @@ public class TestClass {
 			j = 274;
 			break;
 		default:
-			j = 2;
+			j = k;
 		}
 		call(j);
 	}
@@ -58,5 +58,15 @@ public class TestClass {
 
 	public int method1(int i) {
 		return AnotherTestClass.method2(-i % k);
+	}
+	
+	public int fib(int i) {
+		if (i <= 0) {
+			return 0;
+		}
+		if (i == 1 || i == 2) {
+			return 1;
+		}
+		return fib(i-1) + fib(i-2);
 	}
 }

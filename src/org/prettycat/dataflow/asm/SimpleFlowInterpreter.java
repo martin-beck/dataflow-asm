@@ -45,6 +45,10 @@ public class SimpleFlowInterpreter extends Interpreter<SimpleFlowValue> implemen
     		return null;
     	}
     	SimpleFlowValue result = new SimpleFlowValue(type, origin, inputs, false);
+    	if (type == null && origin == null) {
+    		System.err.println("creating null-null value");
+    		Thread.dumpStack();
+    	}
     	if (origin != null) {
     		values.put(origin, result);
     	}
@@ -321,7 +325,7 @@ public class SimpleFlowInterpreter extends Interpreter<SimpleFlowValue> implemen
         } else if (opcode == INVOKEDYNAMIC) {
             return newValue(Type.getReturnType(((InvokeDynamicInsnNode) insn).desc), insn, (List<SimpleFlowValue>)values);
         } else {
-        	System.out.println(((MethodInsnNode)insn).name + " " + values);
+        	// System.out.println(((MethodInsnNode)insn).name + " " + values);
             return newValue(Type.getReturnType(((MethodInsnNode) insn).desc), insn, (List<SimpleFlowValue>)values);
         }
     }

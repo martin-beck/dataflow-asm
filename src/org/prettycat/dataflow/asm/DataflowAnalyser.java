@@ -53,6 +53,10 @@ public class DataflowAnalyser {
 	}
 	
 	private static void handleClass(String class_name, Document dest_doc, Element dest_el) {
+		System.out.println("processing "+class_name);
+		if (handledClasses.contains(class_name)) {
+			return;
+		}
 		handledClasses.add(class_name);
 		
 		byte[] sourceClass = cp.readClass(class_name);

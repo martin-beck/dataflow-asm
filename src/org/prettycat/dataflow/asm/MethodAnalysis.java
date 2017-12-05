@@ -1,6 +1,8 @@
 package org.prettycat.dataflow.asm;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -8,7 +10,11 @@ import java.util.Set;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.IntInsnNode;
 import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -99,6 +105,11 @@ public class MethodAnalysis {
 	
 	private void runAnalysis() throws AnalyzerException {
 		analyzer.analyze(owner, method);
+		
+		if (analyzer.getFrames().length == 0) {
+			System.err.println("no frames after analysis?! -- rejecting result");
+			throw new AnalyzerException(null, "no frames after analysis");
+		}
 		
 		Frame<SimpleFlowValue> initialFrame = analyzer.getFrames()[0];
 		int nargs = Type.getArgumentTypes(method.desc).length;
@@ -196,6 +207,67 @@ public class MethodAnalysis {
 		return result;
 	}
 	
+	private Object getConstValue(AbstractInsnNode instruction)
+	{
+		if (instruction instanceof IntInsnNode) {
+			if (instruction.getOpcode() == Opcodes.SIPUSH || instruction.getOpcode() == Opcodes.BIPUSH) {
+				// push integer value onto stack
+				return new Integer(((IntInsnNode) instruction).operand);
+			}
+		} else if (instruction instanceof LdcInsnNode) {
+			return ((LdcInsnNode) instruction).cst;
+		} else if (instruction instanceof InsnNode) {
+			switch (instruction.getOpcode()) {
+			case Opcodes.DCONST_0:
+				return new Double(0.);
+			case Opcodes.DCONST_1:
+				return new Double(1.);
+			case Opcodes.ICONST_0:
+				return new Integer(0);
+			case Opcodes.ICONST_1:
+				return new Integer(1);
+			case Opcodes.ICONST_2:
+				return new Integer(2);
+			case Opcodes.ICONST_3:
+				return new Integer(3);
+			case Opcodes.ICONST_4:
+				return new Integer(4);
+			case Opcodes.ICONST_5:
+				return new Integer(5);
+			case Opcodes.ICONST_M1:
+			case Opcodes.LCONST_0:
+				return new Long(0);
+			case Opcodes.LCONST_1:
+				return new Long(1);
+			case Opcodes.FCONST_0:
+				return new Float(0.f);
+			case Opcodes.FCONST_1:
+				return new Float(1.f);
+			case Opcodes.FCONST_2:
+				return new Float(2.f);
+			case Opcodes.ACONST_NULL:
+				return null;
+			}
+		}
+		return null;
+	}
+	
+	private String marshallValue(Object value) {
+		String value_s;
+		if (value instanceof String) {
+			try {
+				value_s = "b64+utf8:" + Base64.getEncoder().encodeToString(((String) value).getBytes("utf-8"));
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return null;
+			}
+		} else {
+			value_s = "raw:" + String.valueOf(value);
+		}
+		return value_s;
+	}
+	
 	private Element writeInstructionXML(
 			Document doc, 
 			int index,
@@ -207,6 +279,22 @@ public class MethodAnalysis {
 				instruction.getOpcode(), 
 				lineNumber,
 				getFullyQualifiedInstructionName(index));
+		
+		{
+			Object value = getConstValue(instruction);
+			if (value != null || instruction.getOpcode() == Opcodes.ACONST_NULL) {
+				result.setAttribute("value", marshallValue(value));
+			}
+		}
+		
+		if (instruction instanceof FieldInsnNode) {
+			result.appendChild(XMLProtocol.createFieldElement(
+				doc,
+				((FieldInsnNode) instruction).owner,
+				((FieldInsnNode) instruction).name
+			));
+		}
+			
 		SimpleFlowValue value = interpreter.getValue(instruction);
 		if (value != null && value.inputs.size() > 0) {
 			result.appendChild(writeInputsXML(doc, value));

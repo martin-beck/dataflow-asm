@@ -1,5 +1,8 @@
 package org.prettycat.dataflow.asm;
 
+import java.io.UnsupportedEncodingException;
+import java.util.Base64;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -104,6 +107,13 @@ public class XMLProtocol {
 	public static Element createValueOfElement(Document doc, String uid) {
 		Element result = doc.createElementNS(NAMESPACE, "value-of");
 		result.setAttribute("from", uid);
+		return result;
+	}
+	
+	public static Element createFieldElement(Document doc, String owner, String name) {
+		Element result = doc.createElementNS(NAMESPACE, "field");
+		result.setAttribute("owner", owner);
+		result.setAttribute("name", name);
 		return result;
 	}
 	

@@ -32,14 +32,20 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.ow2.asm</groupId>
     <artifactId>asm-parent</artifactId>
-    <version>5.2</version>
+    <groupId>org.ow2.asm</groupId>
+    <version>6.0</version>
   </parent>
 
-  <name>ASM Debug All</name>
-  <groupId>org.ow2.asm</groupId>
-  <artifactId>asm-debug-all</artifactId>
+  <name>ASM Tree</name>
+  <artifactId>asm-tree</artifactId>
   <packaging>jar</packaging>
   
+  <dependencies>
+    <dependency>
+      <artifactId>asm</artifactId>
+      <groupId>org.ow2.asm</groupId>
+    </dependency>
+  </dependencies>
+
 </project>
